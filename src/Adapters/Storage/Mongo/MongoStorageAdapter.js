@@ -607,7 +607,10 @@ export class MongoStorageAdapter implements StorageAdapter {
     }
 
     readPreference = this._parseReadPreference(readPreference);
-    return this.createTextIndexesIfNeeded(className, query, schema)
+
+    // CosmosDB: We need to create sort indexes for any field we want to sort on
+    return this.createSortIndexesIfNeeded(className,mongoSort,schema)
+      .then(() => this.createTextIndexesIfNeeded(className, query, schema))
       .then(() => this._adaptiveCollection(className))
       .then(collection =>
         collection.find(mongoWhere, {
@@ -656,13 +659,17 @@ export class MongoStorageAdapter implements StorageAdapter {
       ...defaultOptions,
       ...caseInsensitiveOptions,
       ...indexNameOptions,
-      ...ttlOptions,
+  //    ...ttlOptions,
     };
+
+    // CosmosDB: I removed the TTL options above and the collcation options from indexOptions since they are not
+    // supported by CosmosDB it seems. Todo: Look into this
+    delete indexOptions.collation;
 
     return this._adaptiveCollection(className)
       .then(
         collection =>
-          new Promise((resolve, reject) =>
+          new Promise((resolve, reject) => 
             collection._mongoCollection.createIndex(indexCreationRequest, indexOptions, error =>
               error ? reject(error) : resolve()
             )
@@ -995,6 +1002,54 @@ export class MongoStorageAdapter implements StorageAdapter {
       return this.createIndex(className, index);
     }
     return Promise.resolve();
+  }
+
+  // CosmosDB: We need to create sort indexes for any field we want to sort on
+  createSortIndexesIfNeeded(className: string, sort: any, schema: any) : Promise<void> {
+    const sortFields = Object.assign({},sort) // Make a copy
+    delete sortFields._id // Id will always have index
+    if(Object.keys(sortFields).length === 0) return Promise.resolve()
+
+    // Remove existing indexes
+    const existingIndexes = schema.indexes;
+
+
+    for(const fieldName in sortFields) {
+     
+      for(const key in existingIndexes) {
+        const index = existingIndexes[key];
+        if (Object.prototype.hasOwnProperty.call(index, fieldName)) {
+          delete sortFields[fieldName]
+        }
+      }
+    }
+
+    if(Object.keys(sortFields).length === 0) return Promise.resolve()
+
+    const indexes = {}
+    for(const fieldName in sortFields) {
+      indexes[fieldName] = {
+        [fieldName] : 1
+      }
+    }
+
+    const fields = _.mapKeys(schema.fields, (value, fieldName) =>
+      transformKey(className, fieldName, schema)
+    )
+
+    return this.setIndexesWithSchemaFormat(
+      className,
+      indexes,
+      existingIndexes,
+      fields
+    ).catch(error => {
+      if (error.code === 85) {
+        // Index exist with different options
+        return this.setIndexesFromMongo(className);
+      }
+      throw error;
+    });
+
   }
 
   createTextIndexesIfNeeded(className: string, query: QueryType, schema: any): Promise<void> {
