@@ -1,3 +1,31 @@
+## [4.10.14](https://github.com/parse-community/parse-server/compare/4.10.13...4.10.14) (2022-09-02)
+
+
+### Bug Fixes
+
+* brute force guessing of user sensitive data via search patterns; this fixes a security vulnerability in which internal and protected fields may be used as query constraints to guess the value of these fields and obtain sensitive data (GHSA-2m6g-crv8-p3c6) ([#8143](https://github.com/parse-community/parse-server/issues/8143)) ([634c44a](https://github.com/parse-community/parse-server/commit/634c44acd18f6ee6ec60fac89a2b602d92799bec))
+
+## [4.10.13](https://github.com/parse-community/parse-server/compare/4.10.12...4.10.13) (2022-06-30)
+
+
+### Bug Fixes
+
+* protected fields exposed via LiveQuery; this removes protected fields from the client response; this may be a breaking change if your app is currently expecting to receive these protected fields ([GHSA-crrq-vr9j-fxxh](https://github.com/parse-community/parse-server/security/advisories/GHSA-crrq-vr9j-fxxh)) ([#8074](https://github.com/parse-community/parse-server/issues/8074)) ([054f3e6](https://github.com/parse-community/parse-server/commit/054f3e6ab01d66a0dcfb77725af28eac1485b375))
+
+## [4.10.12](https://github.com/parse-community/parse-server/compare/4.10.11...4.10.12) (2022-06-17)
+
+
+### Bug Fixes
+
+* invalid file request not properly handled; this fixes a security vulnerability in which an invalid file request can crash the server ([GHSA-xw6g-jjvf-wwf9](https://github.com/parse-community/parse-server/security/advisories/GHSA-xw6g-jjvf-wwf9)) ([#8059](https://github.com/parse-community/parse-server/issues/8059)) ([5f42322](https://github.com/parse-community/parse-server/commit/5f423224bda8df32affc4ed829eaddd87e4cb622))
+
+## [4.10.11](https://github.com/parse-community/parse-server/compare/4.10.10...4.10.11) (2022-06-17)
+
+
+### Bug Fixes
+
+* certificate in Apple Game Center auth adapter not validated; this fixes a security vulnerability in which authentication could be bypassed using a fake certificate; if you are using the Apple Gamer Center auth adapter it is your responsibility to keep its root certificate up-to-date and we advice you read the security advisory ([GHSA-rh9j-f5f8-rvgc](https://github.com/parse-community/parse-server/security/advisories/GHSA-rh9j-f5f8-rvgc)) ([145838d](https://github.com/parse-community/parse-server/commit/145838d2d9c1ecf76412a962a4ef61c712bcb0a7))
+
 ## [4.10.10](https://github.com/parse-community/parse-server/compare/4.10.9...4.10.10) (2022-05-01)
 
 
